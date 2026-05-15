@@ -1,15 +1,12 @@
 {
-  "name": "camera-websocket-server",
+  "name": "camera-relay-server",
   "version": "1.0.0",
-  "description": "WebSocket server for camera streaming",
+  "description": "WebSocket relay for camera feed",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "ws": "^8.14.2"
-  },
-  "engines": {
-    "node": "18.x"
   }
 }
