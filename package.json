@@ -1,12 +1,13 @@
 {
-  "name": "camera-relay-server",
+  "name": "webrtc-signal",
   "version": "1.0.0",
-  "description": "WebSocket relay for camera feed",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "ws": "^8.14.2"
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "cors": "^2.8.5"
   }
 }
