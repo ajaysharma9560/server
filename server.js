@@ -1,47 +1,31 @@
 const WebSocket = require('ws');
+const port = process.env.PORT || 10000;
 
-const PORT = process.env.PORT || 10000;
-const server = new WebSocket.Server({ port: PORT });
+const server = new WebSocket.Server({ port });
 
-console.log(`🚀 Server starting on port ${PORT}`);
-
-// Store all connected clients
 const clients = new Set();
 
-server.on('connection', (ws, req) => {
-    console.log(`✅ New client connected! Total: ${clients.size + 1}`);
+server.on('connection', (ws) => {
+    console.log('Client connected');
     clients.add(ws);
-    
-    // Send welcome message
-    ws.send(JSON.stringify({
-        type: 'connected',
-        message: 'Connected to camera server',
-        timestamp: Date.now()
-    }));
-    
-    // Handle incoming messages (camera frames)
+
     ws.on('message', (data) => {
-        // Broadcast to all OTHER clients (web viewers)
+        // APK se aaya data -> baaki sab clients ko bhejo
         clients.forEach(client => {
             if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(data);
+                client.send(data.toString());
             }
         });
     });
-    
-    // Handle disconnect
+
     ws.on('close', () => {
+        console.log('Client disconnected');
         clients.delete(ws);
-        console.log(`❌ Client disconnected. Total: ${clients.size}`);
     });
-    
-    // Handle errors
+
     ws.on('error', (error) => {
-        console.error(`WebSocket error: ${error.message}`);
-        clients.delete(ws);
+        console.error('Error:', error);
     });
 });
 
-// Keep server alive
-console.log(`✅ WebSocket server is running on port ${PORT}`);
-console.log(`📡 Waiting for connections...`);
+console.log(`WebSocket server running on port ${port}`);
