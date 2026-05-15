@@ -1,31 +1,45 @@
-const WebSocket = require('ws');
-const port = process.env.PORT || 10000;
-
-const server = new WebSocket.Server({ port });
-
-const clients = new Set();
-
-server.on('connection', (ws) => {
-    console.log('Client connected');
-    clients.add(ws);
-
-    ws.on('message', (data) => {
-        // APK se aaya data -> baaki sab clients ko bhejo
-        clients.forEach(client => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(data.toString());
-            }
-        });
-    });
-
-    ws.on('close', () => {
-        console.log('Client disconnected');
-        clients.delete(ws);
-    });
-
-    ws.on('error', (error) => {
-        console.error('Error:', error);
-    });
+const express = require('express');
+const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http, {
+  cors: { origin: "*" }
 });
 
-console.log(`WebSocket server running on port ${port}`);
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('WebRTC Signal Server Running ✅');
+});
+
+const rooms = {};
+
+io.on('connection', (socket) => {
+  console.log('✅ Client connected:', socket.id);
+
+  socket.on('join-room', (roomId, userId) => {
+    socket.join(roomId);
+    rooms[socket.id] = roomId;
+    console.log(`📱 ${userId} joined room: ${roomId}`);
+    socket.to(roomId).emit('user-joined', userId);
+  });
+
+  socket.on('signal', (data) => {
+    socket.to(data.room).emit('signal', {
+      from: data.from,
+      signal: data.signal
+    });
+  });
+
+  socket.on('disconnect', () => {
+    const roomId = rooms[socket.id];
+    if (roomId) {
+      socket.to(roomId).emit('user-left', socket.id);
+      delete rooms[socket.id];
+    }
+    console.log('❌ Client disconnected:', socket.id);
+  });
+});
+
+http.listen(PORT, () => {
+  console.log(`🚀 Signal Server running on port ${PORT}`);
+});
