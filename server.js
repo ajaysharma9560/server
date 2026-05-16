@@ -6,20 +6,14 @@ const cloudinary = require('cloudinary').v2;
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 🔥 APNA CLOUDINARY CREDENTIALS 🔥
+// 🔥 YOUR CLOUDINARY CREDENTIALS (Added) 🔥
 cloudinary.config({
     cloud_name: 'dypwj2dhh',
-    api_key: 'YOUR_API_KEY',       // 🔥 Naya API key daal
-    api_secret: 'YOUR_API_SECRET'  // 🔥 Naya secret daal
+    api_key: '564619366162332',
+    api_secret: 'SOT0Ig91c_ZKU9cZQ4tEYjYDJYs'
 });
 
-// Store online devices
-let onlineDevices = {};
-
-// ========== API ROUTES ==========
-app.get('/', (req, res) => res.send('Status Server Running ✅'));
-
-// Get latest videos from Cloudinary
+// ========== API ROUTE FOR VIDEOS ==========
 app.get('/api/videos', async (req, res) => {
     try {
         const result = await cloudinary.api.resources({
@@ -30,22 +24,26 @@ app.get('/api/videos', async (req, res) => {
         });
         res.json({ videos: result.resources || [] });
     } catch (err) {
+        console.error('Cloudinary error:', err.message);
         res.json({ videos: [], error: err.message });
     }
 });
 
+// Health check
+app.get('/', (req, res) => res.send('Ludo Cam Server Running ✅'));
+
 // ========== WEBSOCKET (ONLINE STATUS) ==========
+let onlineDevices = {};
+
 io.on('connection', (socket) => {
     console.log('✅ Client connected:', socket.id);
 
-    // Device registers itself
     socket.on('register', (deviceId, deviceName) => {
         onlineDevices[deviceId] = { name: deviceName, socketId: socket.id };
         io.emit('status', { deviceId, online: true, deviceName });
         console.log(`📱 ${deviceName} is ONLINE`);
     });
 
-    // Handle disconnect
     socket.on('disconnect', () => {
         let disconnectedId = null;
         for (const [id, data] of Object.entries(onlineDevices)) {
@@ -62,6 +60,6 @@ io.on('connection', (socket) => {
 
 http.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📊 WebSocket: wss://...`);
     console.log(`📹 API: /api/videos`);
+    console.log(`💚 Cloudinary configured with cloud: dypwj2dhh`);
 });
