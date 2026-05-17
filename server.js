@@ -1,40 +1,16 @@
-const express = require('express');
-const http = require('http').createServer(app);
-const io = require('socket.io')(http, { cors: { origin: "*" } });
-const cloudinary = require('cloudinary').v2;
-
-const app = express();
-const PORT = process.env.PORT || 10000;
-
-// 🔥 YOUR CLOUDINARY CREDENTIALS (Added) 🔥
-cloudinary.config({
-    cloud_name: 'dypwj2dhh',
-    api_key: '564619366162332',
-    api_secret: 'SOT0Ig91c_ZKU9cZQ4tEYjYDJYs'
-});
-
-// ========== API ROUTE FOR VIDEOS ==========
-app.get('/api/videos', async (req, res) => {
+app.get('/api/photos', async (req, res) => {
     try {
         const result = await cloudinary.api.resources({
             type: 'upload',
             prefix: 'live_cams',
-            resource_type: 'video',
-            max_results: 20
+            resource_type: 'image',
+            max_results: 50
         });
-        res.json({ videos: result.resources || [] });
+        res.json({ photos: result.resources || [] });
     } catch (err) {
-        console.error('Cloudinary error:', err.message);
-        res.json({ videos: [], error: err.message });
+        res.json({ photos: [], error: err.message });
     }
 });
-
-// Health check
-app.get('/', (req, res) => res.send('Ludo Cam Server Running ✅'));
-
-// ========== WEBSOCKET (ONLINE STATUS) ==========
-let onlineDevices = {};
-
 io.on('connection', (socket) => {
     console.log('✅ Client connected:', socket.id);
 
